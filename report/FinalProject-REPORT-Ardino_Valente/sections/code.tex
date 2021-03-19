@@ -1,0 +1,561 @@
+\providecommand{\main}{../main}
+\documentclass[../main/main.tex]{subfiles}
+
+
+
+\begin{document}
+
+\section{Code implementation}
+\label{sec:code}
+In this Section we discuss the practical implementation of a Tree Tensor Network classifier with TensorFlow and TensorNetwork libraries (for their documentation, see \cite{tf, tn}). We begin with a brief introduction on the preliminary operations applied before the initialisation of the learning algorithm, such as data preprocessing, in Subsection \textbf{\ref{ssec:code_preprocessing}}. Then, we present in Susbsection \textbf{\ref{ssec:code_layer}} the TTN construction with dedicated TensorFlow layers in which tensor contractions are managed by TensorNetwork. Lastly, in Subsections \textbf{\ref{ssec:code_building}} and \textbf{\ref{ssec:code_training}} we introduce the implementation of a method for flexible TTN building and training.
+
+Before going on, we remark the notation employed in this Section. We refer to the \( j^{\text{th}} \) feature of the \( i^{\text{th}} \) sample in the dataset as \( x^{(i)}_{j} \). In particular, we have that \( i \in [1,n_{\mathrm{d}}] \) and \( j \in [1,n_{\mathrm{f}}] \), with \( n_{\mathrm{d}} \) and \( n_{\mathrm{f}} \) defined as the number of samples and features in the dataset, respectively. In our case, we have:
+\begin{align}
+    \begin{aligned}
+        n_{\mathrm{d}} &= 11 \cdot 10^{6}   \\
+        n_{\mathrm{f}} &= 28
+    \end{aligned}
+    \quad .
+\end{align}
+
+\renewcommand{\lstlistingname}{\textbf{LST.}}
+\renewcommand{\thelstlisting}{\textbf{\arabic{lstlisting}}}
+
+
+
+\subsection{Data preprocessing}
+\label{ssec:code_preprocessing}
+The HIGGS dataset provided by \cite{baldi} comes out in a format already normalised:
+\begin{itemize}
+    \item the features with negative values are assumed either normally or uniformly distributed, so their distribution is centred and rescaled by the standard deviation;
+    \item the features with only positive and large values are rescaled by just setting their mean to 1.
+\end{itemize}
+This is a common choice in HEP context, since it preserves the intrinsic structure of the features distributions.
+
+\paragraph{Rescaling}
+Due to the feature maps we are going to apply, we further rescale the dataset in order to bound the features in \( [-1,1] \) for the ones with negative values, in \( [0,1] \) for the ones positively defined. So, we apply the following transformation before mapping:
+\begin{equation}
+    x^{(i)}_{j}
+    \longrightarrow
+    x^{(i)\prime}_{j}
+    =
+    \frac{x^{(i)}_{j}}{m_j}
+    \quad ,
+\end{equation}
+with
+\begin{equation}
+    m_{j}
+    =
+    \max_{i\in \mathcal{D}_{\mathrm{train}}} \abs{x^{(i)}_{j}}
+    \quad ,
+\end{equation}
+where \( \mathcal{D}_{\mathrm{train}} \) is the part of dataset reserved for training the TTN\footnote{In Machine Learning field, in order to obtain a truthful estimation of the goodness of a model, the validation and test set should not be ``seen'' by the model during an epoch of training. This practical rule holds also during the dataset preprocessing. So, the preprocessing constants such as the means, standard deviations and maxima are obtained from the training set and applied to the full dataset.}. This procedure is performed using the \texttt{\bfseries Standardize} function, sketched in \lstref{lst:code_preprocessing_standardize}.
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the standardisation of dataset in the preprocessing phase of rescaling.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_preprocessing_standardize
+]
+def Standardize(x, nt):
+    """
+    Standardize each feature diving by the absolute maximum, distributions will be:
+    > in [-1, 1] for negative feature
+    > in [ 0, 1] for positive ones.
+    """
+    
+    for j in range(x.shape[1]):                      # loop over features
+        vec      = x  [:, j]                         # get feature vector
+        vec_norm = vec[:nt]                          # take only training part
+        vec      = vec / np.max(np.abs(vec_norm))    # normalize
+        x[:,j]   = vec 
+    return x
+\end{lstlisting}
+
+
+\paragraph{Padding}
+At the input layer of the TTN, as we will see in the later discussion, we contract at least two features per tensor node and, in general, at least two legs per tensor node in the following layers, keeping constant the number of legs contracted. In order to do this without problems, the total number of input features must be a power of the number of features we want to contract. Since this is not true in general, as we have 28 features, a possible solution is to add fictitious features by padding in order to reach the desired size of input legs. The implementation of this preprocessing operation is sketched in \lstref{lst:code_preprocessing_padding} with the function \texttt{\bfseries PadToOrder}. The ladder, given the original dataset \( \mathcal{D} \) with \( n_{\mathrm{f}} \) features and the number of features \( n_{\mathrm{con}} \) to contract per tensor node, returns a properly padded dataset with a number \( \tilde{n}_{\mathrm{f}} \) of features calculated as:
+\begin{equation}
+    \tilde{n}_{\mathrm{f}}
+    =
+    \min_{n\in\mathbb{N}} \qty{ n \ge n_{\mathrm{f}} \ : \ n = \qty(n_{\mathrm{con}})^{m} \ , \ m \in \mathbb{N} }
+    \quad .
+\end{equation}
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the padding of dataset in the preprocessing phase of padding.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_preprocessing_padding
+]
+def PadToOrder(x, con_order):
+    """
+    Pad the dataset with fictitious features in order to reach the minimum:
+    \tilde(n)_(f) = (con_order)^(m)
+    with m \in N
+    """
+    
+    # number of padding features
+    n_pad = int(
+        con_order**(
+            math.ceil(
+                math.log(x.shape[1], con_order)
+            )
+        ) - x.shape[1]
+    )
+    
+    # pad dataset
+    x = np.append(x, np.zeros((x.shape[0], n_pad)), axis=1)
+    return x
+\end{lstlisting}
+
+
+\paragraph{Feature Map}
+As last operation of the preprocessing phase, we apply a feature map to the padded dataset in order to enhance the capability of the classificator to span more types of combinations of the physical quatities and to improve the discrimination of signal from background events. There exists a wide variety of maps in Machine Learning field, however, due to time limitations, we explore only two types. The first one is a polynomial map of order \( d \), whose expression is given by:
+\begin{equation}
+    \Phi^{\mathrm{pol}}_{d}(x)
+    =
+    \qty[1, x, \dots ,  x^{d}]
+    \quad .
+\end{equation}
+The ladder is a very common choice in classification tasks. The second type explored is a quantum-inspired spherical map of order \( d \), whose expression is given by:
+\begin{equation}
+    \Phi^{\mathrm{sph}}_{d}(x)
+    =
+    \qty[\phi^{(1)}_{d}(x), \dots, \phi^{(d)}_{d}(x)]
+    \quad ,
+\end{equation}
+with the single vector components expressed as:
+\begin{equation}
+    \phi_{d}^{(s)}(x)
+    =
+    \sqrt{{{d-1} \choose {s-1}}}
+    \qty( \cos\qty(\frac{\pi}{2} x) )^{d-s}
+    \qty( \sin\qty(\frac{\pi}{2} x) )^{s-1}
+    \quad .
+\end{equation}
+In order to understand the physical meaning of the spherical maps, let us consider the simplest situation of \( d = 2 \). In this case, it maps \( x \) into a spin vector.
+
+The implementation of this preprocessing operation is sketched in \lstref{lst:code_preprocessing_map} with the functions \texttt{\bfseries PolynomialMap} and \texttt{\bfseries SphericalMap}. The ladders, given the padded dataset \( \mathcal{D}_{\mathrm{pad}} \) with \( \tilde{n}_{\mathrm{f}} \) features, return a mapped dataset with dimensions:
+\begin{itemize}
+    \item \( n_{\mathrm{samples}} \times \tilde{n}_{\mathrm{f}} \times (d+1) \) for the polynomial map of order \( d \);
+    \item \( n_{\mathrm{samples}} \times \tilde{n}_{\mathrm{f}} \times d \) for the spherical map of order \( d \).
+\end{itemize}
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementations of the spherical and polynomial mappings of dataset in the preprocessing phase of mapping.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_preprocessing_map
+]
+def SphericalMap(x, order=2, dtype=np.float32):
+    """
+    Apply spherical map of order d=order to input dataset x
+    """
+    
+    x_map = np.zeros((x.shape[0],x.shape[1],order), dtype=dtype)
+    for i in range(order):
+        comb_coef    = np.sqrt(scipy.special.comb(order-1,i))
+        x_map[:,:,i] = comb_coef * np.power(np.cos(x),order-1-i) * np.power(np.sin(x),i)
+    
+    return x_map
+
+
+def PolynomialMap(x, order=2, dtype=np.float32):
+    """
+    Apply polynomial map of order d=order to input dataset x
+    """
+    
+    x_map = np.zeros((x.shape[0],x.shape[1],order+1), dtype=dtype)
+    for i in range(order+1):
+        x_map[:,:,i] = np.power(x,i)
+    
+    return x_map
+\end{lstlisting}
+
+
+Given all the discussed phases of input data preprocessing, we summarise them in \figref{fig:code_preprocessing_workflow}, where they are represented in logical order.
+
+\begin{figure*}[!h]
+    \centering
+    \includestandalone[width=0.75\textwidth]{../images/code/preprocessing/workflow}
+    \caption{Workflow of preprocessing precedure, starting from the rescaling of data, going through the zero padding in order to get proper dimensions for the input of the TTN, and lastly the polynomial or spherical mapping.}
+    \label{fig:code_preprocessing_workflow}
+\end{figure*}
+
+
+
+\subsection{TTN layers in TensorFlow framework}
+\label{ssec:code_layer}
+The TTN model is created exploiting the power of TensorFlow, a widely diffuse Machine Learning framework, for automatic differentiation and of TensorNetwork for contractions between tensor nodes.
+In particular, we choose the Keras API for TensorFlow, in order to improve the code readability. Given these premises, here we discuss in detail the implementation of a layer of tensor nodes, denoted as \texttt{\bfseries TTN\_SingleNode}. By the concatenation of such layers, we are able to build a TTN model with high performances, due also to the highly optimised frameworks employed. Moreover, its training and evaluation can be easily managed by CPU or GPU by simply switching an apposite flag, with the possibility of running in parallel on both of them. Now, let us focus on the core points of the layer implementation.
+
+
+\paragraph{Layer initialisation}
+The layer \texttt{TTN\_SingleNode} is implemented as a Python class and each layer of the final TTN model is an istance of it. As every class, when a layer object is instantiated, an apposite initialisation function is run with different input parameters carrying information on the characteristics of the layer itself. Some of the most important input parameters are:
+\begin{itemize}
+    \item \texttt{\bfseries n\_contraction}: the number of features to contract in each node site, namely the previously defined \( n_{\mathrm{con}} \);
+    \item \texttt{\bfseries bond\_dim}: the dimension \( \chi \) of the bonds between the tensor nodes inside the TTN;
+    \item \texttt{\bfseries input\_shape}: the shape of the input samples, namely \( \tilde{n}_{\mathrm{f}} \times (d+1) \) for the polynomial map and \( \tilde{n}_{\mathrm{f}} \times d \) for the spherical map;
+    \item \texttt{\bfseries activation}: string carrying the name of the activation function to use, if specified;
+    \item \texttt{\bfseries use\_bias}: boolean variable that introduces a bias weight vector to sum in every tensor node of the TTN, if true is specified;
+    \item \texttt{\bfseries use\_batch\_norm}: boolean variable to introduce the batch normalization of the layers, if true is specified.
+\end{itemize}
+
+Hence, starting from the number of features \( \tilde{n}_{\mathrm{f}} \) and the number of features to contract \( n_{\mathrm{con}} \), we initialise \( \frac{\tilde{n}_{\mathrm{f}}}{n_{\mathrm{con}}} \) tensors of rank \( n_{\mathrm{con}} +1 \) for the input layer. The ladders will have \( d \) or \( (d+1 \)-length along the first \( n_{\mathrm{con}} \) dimensions and \( \chi \) along the last one. Moreover, if specified, a rank-2 tensor of dimension \( \frac{n_{\mathrm{f}}}{n_{\mathrm{con}}} \times \chi \) is also initialised. This is the so-called bias, which will be summed to the output of the layer. The core code for the instantiation of the layer is sketched in \lstref{lst:code_layer_initialisation}.
+
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the tensor nodes initialisation in the \texttt{TTN\_SingleNode} layer.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_layer_initialisation
+]
+class TTN_SingleNode(Layer):
+
+    def __init__(
+        self,
+        n_contraction      : int,
+        bond_dim           : int,
+        use_bias           : Optional[bool] = True,
+        activation         : Optional[Text] = None,
+        kernel_initializer : Optional[Text] = 'glorot_uniform',
+        bias_initializer   : Optional[Text] = 'zeros',
+        kernel_regularizer                  = None,
+        **kwargs
+    ) -> None:
+
+        # Allow specification of input_dim instead of input_shape
+        if 'input_shape' not in kwargs and 'input_dim' in kwargs:
+            kwargs['input_shape'] = (kwargs.pop('input_dim'),)
+
+        # initialize parent class
+        super().__init__(**kwargs)
+
+        self.n_contraction      = n_contraction
+        self.bond_dim           = bond_dim
+        self.nodes              = []
+        self.use_bias           = use_bias
+        self.activation         = activations.get(activation)
+        self.kernel_initializer = initializers.get(kernel_initializer)
+        self.bias_initializer   = initializers.get(bias_initializer)
+        self.kernel_regularizer = regularizers.get(kernel_regularizer)
+\end{lstlisting}
+
+
+% self.feature_dim = input_shape[2]
+
+% #shape for the node contraction
+% w_shape = tuple([self.feature_dim]*self.n_contraction + [self.bond_dim])
+
+% # initialise weights in tensor nodes
+% for i in range(self.n_weights):
+%     self.nodes.append(
+%         self.add_weight(
+%             name        = 'contraction'+str(i),
+%             shape       = w_shape,
+%             trainable   = True,
+%             initializer = self.kernel_initializer,
+%             regularizer = self.kernel_regularizer
+%         )
+%     )
+
+% # initialise bias vector (if specified)
+% self.bias_var = self.add_weight(
+%     name        = 'bias',
+%     shape       = (self.n_weights, self.bond_dim),
+%     trainable   = True,
+%     initializer = self.bias_initializer
+% ) if self.use_bias else None
+
+
+\paragraph{Edges connection}
+After their initialisation, the legs of tensor nodes are connected to the tensors for the input samples. This operation is accomplished by casting the tensor objects with weights from TensorFlow (\texttt{Tensor} types) to TensorNetwork (\texttt{Node} types). The advantage of this method is the possibility of an easy selection of the tensor edges that should be be connected. So, it allows to select without ambiguity on which index the contraction should be performed. In order to do this selection for every leg, two for loops are used:
+\begin{itemize}
+    \item in the first one, the \texttt{Node} objects are instantiated;
+    \item in the second one, their edges are connected using the built-in TensorNetwork \pyth{^} operator.
+\end{itemize}
+This passages are sketched in \lstref{lst:code_layer_edges}, namely a piece of code from the \texttt{TTN\_SingleNode} class definition.
+    
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the connections between tensor nodes in the \texttt{TTN\_SingleNode} layer.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_layer_edges
+]
+x_nodes  = []
+tn_nodes = []
+
+for i in range(len(nodes)):
+    for j in range(n_contr):
+        # create feature nodes
+        x_nodes.append(tn.Node(x[n_contr*i+j], name='xnode', backend="tensorflow"))
+    # create ttn node
+    tn_nodes.append(tn.Node(nodes[i] , name=f'node_{i}', backend="tensorflow"))
+
+for i in range(len(nodes)):
+    for j in range(n_contr): 
+        # make connections
+        x_nodes[n_contr*i+j][0] ^ tn_nodes[i][j]
+\end{lstlisting}
+
+
+It is important to remark that the computations needed to perform the contractions are not executed in this step. In fact, the real contraction is executed in a separated loop. Moreover, at first sight the use of three loops operating on the same object may not seem efficient. However, this choice enhances the parallelisation of the full computational task thanks to the inner structure of TensorNetwork library.
+
+
+\paragraph{Contractions}
+After connecting all the legs of the tensor nodes in every layer of the TTN model, the real contraction is performed using the \texttt{greedy} contractor from the TensorNetwork library. Lastly, after the contraction computations the bias vector is added to the result, if explicitly specified at the layers instantiation. The code implementing this part of the algorithm is sketched in \lstref{lst:code_layer_contractions}.
+
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the contractions between tensor nodes in the \texttt{TTN\_SingleNode} layer.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_layer_contractions
+]
+result = []
+
+for i in range(len(nodes)):
+    result.append(
+        tn.contractors.greedy([x_nodes[n_contr*i+j] for j in range(n_contr)]+[tn_nodes[i]])
+    )
+
+result = tf.convert_to_tensor([r.tensor for r in result])
+
+if use_bias:
+    result += bias_var
+\end{lstlisting}
+
+
+Note that other types of contractors are present inside the TensorNetwork library and, in particular, the mostly optimised one is not employed. The reason under this choice is related to the fact that the use of an optimised contractor, despite allowing a faster contraction, does not allow the vectorisation of the computations inside the layer\footnote{The reason for this behaviour is that inside the TensorFlow library the operations are converted to a graph and vectorised. On the other hand, optimised contractors can not be converted to a graph since their contraction order is not predefined (it depends on the tensors themselves), resulting in a single faster step but slowing down significantly the whole execution.}.
+
+
+\paragraph{Input vectorisation}
+The contractions of the weight tensors with the input samples are parallelised in order to speed up both the training and the evaluation speed. This operation is performed using the \texttt{\bfseries vectorized\_map} function from TensorFlow library. In particular, it allows the complete parallelisation of the workflow during the training and prediction procedures. After this part, the activation function is applied, if specified. A sketch of how these methods are implemented is showed in \lstref{lst:code_layer_vecmap}.
+
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the input vectorisation through \texttt{vectorized\_map} in the \texttt{TTN\_SingleNode} layer.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_layer_vecmap
+]
+# prepare input data for the vectorization of the contract function
+input_shape = list(inputs.shape)
+inputs      = tf.reshape(inputs, (-1, input_shape[1], input_shape[2]))
+# vectorize the contraction over all the input samples
+result = tf.vectorized_map(  # vectorize
+	lambda vec: contract(    # create a lambda function to be vectorized
+		vec                , # input sample
+		self.nodes         , # weight tensors
+		self.n_contraction , # number of feaqture to contract
+		self.use_bias      , 
+		self.bias_var		 # bias tensor
+	), 
+	inputs					 # input dataset over which vectorize the lambda function
+)
+
+# apply activation, if specified
+if self.activation is not None:
+    result = self.activation(result)
+\end{lstlisting}
+
+
+Now, given all the discussed phases of \texttt{TTN\_SingleNode} implementation, we summarise them in \figref{fig:code_layer_workflow}, where they are represented in logical order with also the main phases of preprocessing procedure. Note that the previous discussion is focused on the input layer of the TTN. The workflow and implementation for the following layers is the same with the only exception that the tensor nodes in the middle layers are connected with the output of the previous layer.
+
+\begin{figure*}[!h]
+    \includestandalone[width=\textwidth]{../images/code/layer/workflow}
+    \caption{Schematic representation of workflow of the data preprocessing and of the TTN structure, with \( i_{c} = i_{n_{\mathrm{con}}} \).}
+    \label{fig:code_layer_workflow}
+\end{figure*}
+
+
+
+\subsection{Model building}
+\label{ssec:code_building}
+
+The model building is divided into two steps:
+\begin{itemize}
+    \item in the first step we create the structure of the TTN using a series of \texttt{TTN\_SingleNode} layers described before;
+    \item the second step is the compilation of the model into TensorFlow framework, needed to get fast and optimised code.
+\end{itemize}
+Hereafter we describe in detail both of these steps.
+
+
+\paragraph{Model structure}
+In order to automatise the model structure construction with \texttt{TTN\_SingleNode} layers, an apposite function \texttt{\bfseries Make\_SingleNode\_Model} is implemented. The ladder accepts as input parameters:
+\begin{itemize}
+    \item \texttt{\bfseries input\_shape}: the shape of the input samples, namely \( \tilde{n}_{\mathrm{f}} \times (d+1) \) for the polynomial map and \( \tilde{n}_{\mathrm{f}} \times d \) for the spherical map;
+    \item \texttt{\bfseries n\_contraction}: the number of features to contract in each node site, namely the previously defined \( n_{\mathrm{con}} \);
+    \item \texttt{\bfseries bond\_dim}: the dimension \( \chi \) of the bonds between the tensor nodes inside the TTN;
+    \item \texttt{\bfseries activation}: string carrying the name of the activation function to use, if specified;
+    \item \texttt{\bfseries use\_bias}: boolean variable that introduces a bias weight, if true is specified;
+    \item \texttt{\bfseries use\_batch\_norm}: boolean variable to introduce the batch normalization of the layers, if true is specified;
+    \item \texttt{\bfseries kernel\_regulariser}: a TensorFlow regulariser object to introduce the regularisation;
+    \item \texttt{\bfseries verbose}: a flag to enable intermediate information printing, useful for debug.
+\end{itemize}
+In order to give an idea of the internal structure of the model constructor, we report in Appendix \textbf{\ref{ssec:appendix_constructors}} in \lstref{lst:code_building_pure_structure} the core part of the function to construct a ``pure'' model, namely without the application of advanced techniques like normalisation and regularisation. On the other hand, we report in the same Appendix in \lstref{lst:code_building_advanced_structure} the core part capable of constructing more sophisticated models with the employment of advanced techniques.
+
+
+% # create keras sequential model
+% tn_model = Sequential()
+% # first layer, input shape must be specified
+% tn_model.add( TTN_SingleNode( bond_dim=10, activation='elu',     n_contraction=2, 
+%                               input_shape=(x_train.shape[1:])                   ) )
+% # intemediate layers, input shape computed from previous layers output
+% tn_model.add( TTN_SingleNode(bond_dim=10, activation='elu',     n_contraction=2 ) )
+% tn_model.add( TTN_SingleNode(bond_dim=10, activation='elu',     n_contraction=2 ) )
+% tn_model.add( TTN_SingleNode(bond_dim=10, activation='elu',     n_contraction=2 ) )
+% # last layer, bond dim 1 and sigmoid function to interpret output as probability
+% tn_model.add( TTN_SingleNode(bond_dim=1,  activation='sigmoid', n_contraction=2 ) )
+
+
+% In particular, the model in \lstref{lst:code_building_pure_structure} presents five layers. The first four have as activation function the Exponential Linear Unit and bond dimension equal to \( 10 \), while the last one has a bond dimension of one and a sigmoid activation function. The reason for the last layer to be different is due the nature of our task. In order to classify an event as signal or background we need a single value as output, so the bond dimension must be 1, which has to be interpreted as the probability of being a signal event, so we use a sigmoid function which returns value in the $[0,1]$ interval. As we will see this model can perform the classification task reasonably well but its performance can be significantly enhanced using teh ML optimization we described before, an example of model created using all these optimizations is reported below:
+
+
+% \begin{python}
+% BOND_DIM = 10
+% #make sequential model
+% tn_model = Sequential()
+% #create layer with regularization and bias withouth activation 
+% tn_model.add(TN_layer(bond_dim=BOND_DIM, use_bias=True, input_shape=(x_train.shape[1:])))
+% #add batch normalization
+% tn_model.add(BatchNormalization(epsilon=1e-06, momentum=0.9, weights=None))
+% #add activation function, must be after normalization
+% tn_model.add(Activation('elu'))
+% #repeat for other layers
+% tn_model.add(TN_layer(bond_dim=BOND_DIM, use_bias=True, kernel_regularizer=regularizers.l2(0.5e-7)))
+% tn_model.add(BatchNormalization(epsilon=1e-06, momentum=0.9, weights=None))
+% tn_model.add(Activation('elu'))
+% tn_model.add(TN_layer(bond_dim=BOND_DIM, use_bias=True, kernel_regularizer=regularizers.l2(0.5e-7)))
+% tn_model.add(BatchNormalization(epsilon=1e-06, momentum=0.9, weights=None))
+% tn_model.add(Activation('elu'))
+% tn_model.add(TN_layer(bond_dim=BOND_DIM, use_bias=True, kernel_regularizer=regularizers.l2(0.5e-7)))
+% tn_model.add(BatchNormalization(epsilon=1e-06, momentum=0.9, weights=None))
+% tn_model.add(Activation('elu'))
+% tn_model.add(TN_layer(bond_dim=BOND_DIM, use_bias=True, kernel_regularizer=regularizers.l2(0.5e-7)))
+% tn_model.add(BatchNormalization(epsilon=1e-06, momentum=0.9, weights=None))
+% tn_model.add(Activation('elu'))
+% tn_model.add(TN_layer(bond_dim=1,        use_bias=True, kernel_regularizer=regularizers.l2(0.5e-7)))
+% tn_model.add(Activation('sigmoid'))
+% \end{python}
+
+
+
+\paragraph{Model compilation}
+The second and last step in the definition of a TTN model structure, namely its compilation inside TensorFlow framework, is needed before beginning model training.
+In this phase it is possible to specify hyperparameters like the loss function and the optimisation algorithm to use. For this work, only the \texttt{binary\_crossentropy} loss function and the \texttt{adam} optimiser are tested.
+Other arguments are the metrics of interest, such as the accuracy and the AUC, which are monitored during the training procedure on both training and validation sets. An example of the implementation of the compilation instructions is sketched in \lstref{lst:code_building_compilation}.
+
+
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Implementation of the compilation of the TTN model inside TensorFlow framework.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_building_compilation
+]
+tn_model.compile(
+    optimizer = 'adam',                   # optimizer for training
+    loss      = 'binary_crossentropy',    # loss function to minimize
+    metrics   = ['accuracy', 'AUC']       # metrics to monitor
+)
+\end{lstlisting}
+
+
+
+\subsection{Model training}
+\label{ssec:code_training}
+
+In the previous Subsections we have discussed the implementations of input dataset preprocessing and of the \texttt{TTN\_SingleNode} layer, as well as the construction of a TTN model structure. After these operations, it is possible to move to the training of the TTN. The training procedure is done using the standard TensorFlow automatic differentiation methods for weights update. In particular, one can specify two hyperparameters aside from the training samples to use, namely:
+\begin{itemize}
+    \item the number of \textbf{epochs} of training;
+    \item the \textbf{batch size}, namely after how many samples processed the weights should be updated.
+\end{itemize}
+It is important to remark that, depending on the available memory of the hardware, a rule of thumb is to use bigger batch sizes when training on GPU. This choice allows to speed up the computations due to a more efficient exploiting of the higher number of GPU cores with respect to the CPU ones. However, as a trade-off, the model requires a larger number of training epochs in order to reach the comparable performances.
+
+As last remark, a full example of implementation of all the previously discussed steps, from data preprocessing to model training, is sketched in \lstref{lst:code_training_example}.
+
+\begin{lstlisting}[
+    style=mypython,
+    frame=single,
+    caption={Example of a complete workflow, from data preprocessing to model training on GPU.},
+    captionpos=b,
+    aboveskip=10pt,
+    belowskip=10pt,
+    label=lst:code_training_example
+]
+# load N samples from dataset
+data = pd.read_csv(
+    DATA_PATH + 'HIGGS.csv.gz',
+    nrows           = N,
+    compression     = 'gzip',
+    error_bad_lines = False,
+    header          = None
+)
+
+# preprocess the data and split in train, validation and test sets
+# preprocess applying polynomial order 3 map and pad to contract 2 feratures at time
+x_train, x_val, x_test, y_train, y_val, y_test = preprocess.Preprocess(
+    data,
+    feature_map = 'polynomial',
+    map_order   = 2,
+    con_order   = 2,
+    N_train     = N_train,
+    N_val       = N_val,
+    N_test      = N_test,
+    verbose     = True
+)
+
+# create TTN model
+tn_model = Make_SingleNode_Model(
+    input_shape    = (x_train.shape[1:]),
+    bond_dim       = 25,
+    n_contr        = 2
+    activation     = 'elu',
+    use_batch_norm = True
+)
+
+# compile model
+tn_model.compile(
+    optimizer = 'adam',
+    loss      = 'binary_crossentropy',
+    metrics   = ['accuracy', 'AUC']
+)
+
+# train model on GPU
+with tf.device('/device:gpu:0'):
+    history = tn_model.fit(
+        x_train, y_train,
+        validation_data = (x_val,y_val),
+        epochs          = 150,
+        batch_size      = 5000
+    )
+\end{lstlisting}
+
+\end{document}

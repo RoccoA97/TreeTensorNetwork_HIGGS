@@ -1,0 +1,15 @@
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd   5 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  10 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  15 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  20 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  25 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  30 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  35 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  40 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  45 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  50 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  60 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  70 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  80 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd  90 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10
+python run_train_telegrad.py -etr 10000000 -eva 500000 -ete 500000 -map spherical -mo 2 -nc 2 -bd 100 -act elu -bn -bs 10000 -ep 150 -v 2 -tc -p 10

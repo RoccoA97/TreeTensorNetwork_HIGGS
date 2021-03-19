@@ -1,0 +1,115 @@
+\documentclass[tikz,border=0mm]{standalone}
+
+\usepackage{amsmath}
+
+\usetikzlibrary{matrix,positioning,fit,backgrounds,intersections}
+\usetikzlibrary{calc}
+
+
+\definecolor{amber}{rgb}{1.0, 0.75, 0.0}
+\definecolor{goldmetallic}{rgb}{0.83, 0.69, 0.22}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}  %#5D8AA8
+\definecolor{cobalt}{rgb}{0.0, 0.28, 0.67}         %#0047AB
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}      %#002E63
+\definecolor{dartmouthgreen}{rgb}{0.05, 0.5, 0.06} %#00693E
+\definecolor{mydmg}{rgb}{0.05, 0.5, 0.06}          %#00693E
+\definecolor{lava}{rgb}{0.81, 0.06, 0.13}          %#CF1020
+\definecolor{myred}{rgb}{0.81, 0.06, 0.13}         %#CF1020
+
+
+\begin{document}
+\def\layersep{2.5cm}
+%\begin{minipage}{0.6\columnwidth}
+    \begin{tikzpicture}[draw=black!50, mmat/.style={matrix of math nodes,column sep=-\pgflinewidth/2,
+       row sep=-\pgflinewidth/2,cells={nodes={draw,inner sep=5pt,ultra thin, scale=0.85}},draw=#1,thick,inner sep=0pt},
+       mmat/.default=black,
+       node distance=0.3em,
+       transform shape,
+       scale=1.0]
+
+
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle,fill=black!25,minimum size=15pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=lava];
+    \tikzstyle{output neuron}=[neuron, fill=amber];
+    \tikzstyle{hidden neuron}=[neuron, fill=cobalt, minimum size=7.5pt];
+    \tikzstyle{annot} = [text width=4em, text centered]
+
+
+	% Draw the input layer nodes
+	\foreach \name / \y in {1,...,8}
+	% This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+		\node[input neuron, draw=black!100, thick, pin=left:{In{[}\#\y{]}: \( \boldsymbol{\Phi(x_{\y})} \)}] (I-\name) at (-3.0*\layersep,\y) {};
+
+
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-1] (H-3)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-2] (H-4)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-3] (H-5)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-4] (H-6)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-5] (H-7)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-6] (H-8)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-7] (H-9)       {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of I-8] (H-10)      {};
+    \node[hidden neuron, draw=black!100, thick] (H-2)  at ($ (H-4)  !2.0! (H-3)  $) {};
+    \node[hidden neuron, draw=black!100, thick] (H-1)  at ($ (H-3)  !2.0! (H-2)  $) {};
+    \node[hidden neuron, draw=black!100, thick] (H-11) at ($ (H-9)  !2.0! (H-10) $) {};
+    \node[hidden neuron, draw=black!100, thick] (H-12) at ($ (H-10) !2.0! (H-11) $) {};
+
+	\node[hidden neuron, draw=black!100, thick, right=\layersep of H-1]  (HH-1)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-2]  (HH-2)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-3]  (HH-3)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-4]  (HH-4)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-5]  (HH-5)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-6]  (HH-6)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-7]  (HH-7)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-8]  (HH-8)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-9]  (HH-9)  {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-10] (HH-10) {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-11] (HH-11) {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of H-12] (HH-12) {};
+
+	% \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-1]  (HHH-1)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-2]  (HHH-2)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-3]  (HHH-3)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-4]  (HHH-4)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-5]  (HHH-5)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-6]  (HHH-6)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-7]  (HHH-7)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-8]  (HHH-8)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-9]  (HHH-9)  {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-10] (HHH-10) {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-11] (HHH-11) {};
+    % \node[hidden neuron, draw=black!100, thick, right=\layersep of HH-12] (HHH-12) {};
+    
+    \node (HHM)  at ($ (HH-7)  !0.5! (HH-6)  $) {};
+
+    % \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{\scriptsize Out{[}\#2{]}}}, right=\layersep of HHHH-5] (O-2){};
+    % \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{\scriptsize Out{[}\#3{]}}}, right=\layersep of HHHHHH-6] (O-3){};
+    % \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{Out{[}\#1{]}}}, right=\layersep of HHHO] (O-1){};
+    \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{Out{[}\#1{]}: \textbf{Prediction}}}, right=\layersep of HHM] (O-1){};
+
+    \foreach \source in {1,...,8}
+        \foreach \dest in {1,...,12}
+            \path (I-\source) edge (H-\dest);
+
+	\foreach \source in {1,...,12}
+	    \foreach \dest in {1,...,12}
+	        \path (H-\source) edge (HH-\dest);
+
+	% \foreach \source in {1,...,12}
+	%     \foreach \dest in {1,...,12}
+	%         \path (HH-\source) edge (HHH-\dest);
+
+    \foreach \source in {1,...,12}
+        \path (HH-\source) edge (O-1);
+
+
+	% Annotate the layers
+	\node[annot,below of=I-1,      node distance=3.0cm] (A-IL)        {\textbf{Input\\Layer}};
+	\node[annot,below of=H-3,      node distance=3.0cm] (A-HL)        {\textbf{Hidden\\Layer\\1}};
+	\node[annot,below of=HH-3,     node distance=3.0cm] (A-HHL)       {\textbf{Hidden\\Layer\\2}};
+	% \node[annot,below of=HHH-3,    node distance=3.0cm] (A-HHHL)      {\textbf{Hidden\\Layer\\3}};
+	\node[annot,below of=O-1,      node distance=6.5cm] (A-OL)        {\textbf{Output\\Layer}};
+\end{tikzpicture}
+
+\end{document}

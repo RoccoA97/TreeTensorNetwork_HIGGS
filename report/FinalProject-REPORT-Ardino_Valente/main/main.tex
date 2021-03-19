@@ -1,0 +1,47 @@
+\providecommand{\main}{.}
+\documentclass[rmp,11pt,onecolumn,fleqn,floats,notitlepage]{revtex4-1}
+% \documentclass[rmp,onecolumn,fleqn,floats,notitlepage]{revtex4-1}
+\usepackage{subfiles}
+
+
+
+\input{../preamble/preamble.tex}
+
+
+
+\begin{document}
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % TITLEPAGE and INDEX
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \input{../titlepage/titlepage.tex}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % REPORT CONTENT (SECTIONS)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \subfile{../sections/introduction.tex}
+    \clearpage
+    \subfile{../sections/theory.tex}
+    \clearpage
+    \subfile{../sections/code.tex}
+    \clearpage
+    \subfile{../sections/results.tex}
+    \clearpage
+    \subfile{../sections/conclusions.tex}
+    \clearpage
+    {
+        % \appendix
+        \subfile{../sections/appendix.tex}
+    }
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % BIBLIOGRAPHY
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % \clearpage{\pagestyle{empty}\cleardoublepage}
+    \clearpage{\cleardoublepage}
+    \input{bibliography/bibliography.tex}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

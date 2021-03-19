@@ -1,0 +1,29 @@
+\providecommand{\main}{../main}
+\documentclass[../main/main.tex]{subfiles}
+
+
+\begin{document}
+
+
+
+
+
+\section{Introduction}
+
+\paragraph{High Energy Physics and Automatic Learning}
+Understanding the nature of the particles that constitute matter and radiation is one of the main concerns of science and, in particular, of the branch of High Energy Physics (HEP). In this field, the theoretical description of how nature behaves has its climax in the so-called Standard Model. The ladder has proved to be extremely successful in predicting a wide variety of particle phenomena with great accuracy, but it does not give a full view of the intrinsic rules of nature. There are still lots of unanswered questions and still New Physics to discover.
+
+However, due to the increasing complexity of data to analyse and to the more demanding selectivity in the interesting events, the current techniques used in HEP fail to capture all the available information. Moreover, it has already been proved by \cite{baldi} that Machine Learning techniques such as Artificial Neural Networks can overcome this issue by building powerful classifiers. Among the list of the advantages tied to them, there are their capabilities to solve the curse of high dimensionality of data and their potential to compute in an unbiased and very efficient way arbitrary complex functions.
+
+
+\paragraph{Supervised Learning with Tree Tensor Networks}
+An interesting and promising interpretation of this solution is to exploit Quantum Tensor Networks, which are the quantum-inspired version of Biological Neural Networks.
+The power of tensor methods is being appreciated in several fields of Physics and more others. In particular, tensor decompositions can be used to solve non-convex optimisation tasks, such as minimising a certain function \cite{stoudenmire}. Moreover, tensor networks avoid the curse of high dimensionality by incorporating only-low order tensors.
+
+Concerning the context of automatic and supervised learning tasks, several architectures of tensor networks have already been proved to be successful for these purposes, such as the so called Tree Tensor Networks (TTN). In particular, it is possible to apply these techniques to High energy Physics dataset, as showed in \cite{montangero}.
+
+
+\paragraph{Outline}
+Given these premises, in this work we exploit a TTN-based solution to build a classifier for a classical signal-over-background discrimination task on the same dataset employed in \cite{baldi}, so in HEP context. We will take as reference and comparison their results obtained with Deep Neural Networks, showing how with a reduced number of degrees of freedom we are still able to obtain a good accuracy in the task of classification. Moreover, we will deepen on the scalability of this method by showing how training and prediction time behave when increasing the complexity of the tensors. In this sense, we will discuss how an efficient implementation based on TensorFlow and TensorNetwork libraries can be achieved with great flexibility. Last but not least, we conclude the discussion with several possible improvements that can be done for future work in order to boost the classification and computational performances of the method.
+
+\end{document}

@@ -1,0 +1,80 @@
+\documentclass[tikz, border=0pt]{standalone}
+\usepackage{siunitx}
+\usepackage{tikz-3dplot}
+\usepackage{physics}
+\usetikzlibrary{decorations,decorations.markings,decorations.text}
+
+\definecolor{amber}{rgb}{1.0, 0.75, 0.0}
+\definecolor{goldmetallic}{rgb}{0.83, 0.69, 0.22}
+
+\begin{document}
+
+
+\tikzset{>=latex} % for LaTeX arrow head
+
+% CMS conventional coordinate system with LHC and other detectors
+\tdplotsetmaincoords{75}{50} % to reset previous setting
+\begin{tikzpicture}[scale=5.0,tdplot_main_coords,rotate around x=90]
+ 
+    % variables
+    \def\rvec{1.2}
+    \def\thetavec{45}
+    \def\phivec{55}
+    \def\R{1.1}
+    \def\w{0.3}
+    
+    % axes
+    \coordinate (O) at (0,0,0);
+    \draw[thick,->] (0,0,0) -- (1,0,0) node[below left]  {\large$x$};
+    \draw[thick,->] (0,0,0) -- (0,1,0) node[below right] {\large$y$};
+    \draw[thick,->] (0,0,0) -- (0,0,1) node[below right] {\large$z$};
+    \tdplotsetcoord{P}{\rvec}{\thetavec}{\phivec}
+    
+    % vectors
+    %%% momentum
+    \draw[->,red] (O) -- (P) node[above left] {\large\( \va*{p} \)};
+    %%% transverse momentum
+    \draw[->,dashed,red] (O)  -- (Pxy) node[below right] {\large\( p_{\text{T}} \)};
+    %%% projections
+    \draw[dashed,red] (P)  -- (Pxy);
+    \draw[dashed,red] (Py) -- (Pxy);
+    %%% momentum components
+    \draw[->] (O) -- (Px) node[below, color=blue] {\large\( p_{x} \)};
+    \draw[->] (O) -- (Py) node[left,  color=blue] {\large\( p_{y} \)};
+    \draw[->] (O) -- (Pz) node[above, color=blue] {\large\( p_{z} \)};
+    
+    % circle - LHC
+    \tdplotdrawarc[thick,rotate around x=90,black!70!blue]{(\R,0,0)}{\R}{0}{360}{}{}
+    
+    % compass - the line between CMS and ATLAS has a ~12° declination (http://googlecompass.com)
+    \begin{scope}[shift={(1.1*\R,0,1.65*\R)},rotate around y=12]
+        \draw[<->,black!50] (-\w,0,0) -- (\w,0,0);
+        \draw[<->,black!50] (0,0,-\w) -- (0,0,\w);
+        \node[above left,black!50,scale=0.6] at (-\w,0,0) {\large N};
+    \end{scope}
+    
+    % nodes
+    %\node[left,align=center] at (0,0,1.1) {Jura};
+    \node[right] at (\R,0,0) {\large LHC};
+    \fill[radius=0.8pt,black!20!red]
+      (O) circle node[left=4pt,below=2pt] {\large CMS};
+    \draw[thick] (0.02,0,0) -- (0.5,0,0); % partially overdraw x-axis and CMS point
+    \fill[radius=0.8pt,black!20!blue]
+      (2*\R,0,0) circle
+      node[right=4pt,below=2pt,scale=0.9] {\large ATLAS};
+    \fill[radius=0.8pt,black!10!orange]
+      ({\R*sqrt(2)/2+\R},0,{ \R*sqrt(2)/2}) circle
+      node[left=2pt,below=2pt,scale=0.8] {\large ALICE};
+    \fill[radius=0.8pt,black!60!green]
+      ({\R*sqrt(2)/2+\R},0,{-\R*sqrt(2)/2}) circle
+      node[below=2pt,right=2pt,scale=0.8] {\large LHCb};
+    
+    % arcs
+    \tdplotdrawarc[->]{(O)}{0.3}{0}{\phivec}
+      {above=2pt,right=-1pt,anchor=mid west}{\large$\phi$}
+    \tdplotdrawarc[->,rotate around z=\phivec-90,rotate around y=-90]{(0,0,0)}{0.5}{0}{\thetavec}
+      {anchor=mid east}{\large$\theta$}
+ 
+\end{tikzpicture}
+
+\end{document}

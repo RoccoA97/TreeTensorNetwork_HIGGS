@@ -1,0 +1,37 @@
+\documentclass[tikz, border=0pt]{standalone}
+\usepackage{siunitx}
+\usepackage{physics}
+\usepackage[compat=1.1.8]{tikz-feynman}
+\usetikzlibrary{decorations,decorations.markings,decorations.text}
+
+\begin{document}
+
+\def\picscale{1.5}
+\def\nodescale{0.5}
+\def\labscale{0.5}
+
+\begin{tikzpicture}
+    \begin{feynman}[every blob={/tikz/inner sep=0pt, /tikz/minimum size=3mm}, scale=\picscale, transform shape]
+        \vertex [anchor=center, scale=\nodescale]                         (g1) {\( g \)};
+        \vertex [below right=of g1, anchor=center, dot, scale=\nodescale] (v1) {};
+        \vertex [below left =of v1, anchor=center, scale=\nodescale]      (g2) {\( g \)};
+        \vertex [right      =of v1, anchor=center, dot, scale=\nodescale] (v2) {};
+        \vertex [above right=of v2, anchor=center, dot, scale=\nodescale] (v3) {};
+        \vertex [below right=of v2, anchor=center, dot, scale=\nodescale] (v4) {};
+        \vertex [above right=of v3, anchor=center, scale=\nodescale]      (b1) {\( b \)};
+        \vertex [below right=of v3, anchor=south , scale=\nodescale]      (w1) {\( W^{+} \)};
+        \vertex [above right=of v4, anchor=north , scale=\nodescale]      (w2) {\( W^{-} \)};
+        \vertex [below right=of v4, anchor=center, scale=\nodescale]      (b2) {\( \bar{b} \)};
+
+        \diagram*{
+            (g1) -- [gluon] (v1),
+            (g2) -- [gluon] (v1),
+            (v1) -- [gluon] (v2),
+            (v4) -- [fermion, edge label=\( \bar{t} \), scale=\labscale] (v2) -- [fermion, edge label=\( t \), scale=\labscale] (v3),
+            (w1) -- [boson] (v3) -- [fermion] (b1),
+            (b2) -- [fermion] (v4) -- [boson] (w2),
+        };
+    \end{feynman}
+\end{tikzpicture}
+
+\end{document}

@@ -1,0 +1,53 @@
+% Insert logo images above
+\begin{figure}[H]
+    \begin{minipage}{0.25\linewidth}
+        \includegraphics[width=\linewidth]{titlepage/images/logo_DFA.jpg}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.35\linewidth}
+        \includegraphics[width=\textwidth]{titlepage/images/logo_800anni.png}
+    \end{minipage}
+\end{figure}
+
+% Make upper lines
+\vspace{-20pt}
+\noindent\makebox[\linewidth]{\color{linescolor} \rule[-0.2cm]{0.85\paperwidth}{1.2 pt}}
+\noindent\makebox[\linewidth]{\color{linescolor} \rule[0.3cm]{0.85\paperwidth}{1pt}}
+
+% Title
+\title{Tree Tensor Network supervised classifier for High Energy Physics}
+\author{
+    \parbox{3.25cm}{Ardino Rocco}       \parbox{2.5cm}{Mat. 1231629} \parbox{6.0cm}{\bf\href{mailto:rocco.ardino@studenti.unipd.it}{\texttt{rocco.ardino@studenti.unipd.it}}}          \\
+    \parbox{3.25cm}{Valente Alessandro} \parbox{2.5cm}{Mat. 1234429} \parbox{6.0cm}{\bf\href{mailto:alessandro.valente.4@studenti.unipd.it}{\texttt{alessandro.valente.4@studenti.unipd.it}}}
+}
+\date{\today}
+
+% Abstract
+\begin{abstract}
+    In this work we discuss the implementation of a supervised Tree Tensor Network classifier using TensorFlow and TensorNetwork frameworks. To validate the method, we apply it to a classical signal-versus-background classification task on the HIGGS dataset, a standard in Machine Learning researches inside HEP field. So, we treat in detail the necessary preliminary operations, such as data preprocessing and Tree Tensor Network hyperparameters optimisation, needed to boost significantly the classifier performances. The results obtained are then presented, focusing also on the time performances of the algorithm. We conclude with a comparison of our approach with the results obtained by \cite{baldi}, in which a classical Deep Neural Network is used, and discussing also the possible improvements of our method.
+\end{abstract}
+
+% Make title
+\maketitle
+
+% Make lower line
+\vspace{-17pt}
+\noindent\makebox[\linewidth]{\color{linescolor} \rule[0.1cm]{0.85\paperwidth}{1pt}}
+
+% index
+{
+    \hypersetup{linkcolor=black}
+    \vspace{-10pt}
+    \tableofcontents
+    %\vspace{-10pt}
+}
+    
+% Make lower lines
+\noindent\makebox[\linewidth]{\color{linescolor} \rule[-0.2cm]{0.85\paperwidth}{1pt}}
+\noindent\makebox[\linewidth]{\color{linescolor} \rule[0.3cm]{0.85\paperwidth}{1.2 pt}}
+\pagebreak
+
+% Page configuration: start counting page after the first one which is the title
+\pagenumbering{gobble}
+\newpage
+\pagenumbering{arabic}

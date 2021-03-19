@@ -1,0 +1,21 @@
+\providecommand{\main}{../main}
+\documentclass[../main/main.tex]{subfiles}
+
+
+
+\begin{document}
+
+\section{Conclusions}
+
+\paragraph{Summary}
+In this work we have faced the problem of a Tree Tensor Network classifier implementation and we have validated it with a High Energy Physics dataset, namely the ``HIGGS'' dataset of \cite{baldi}. Moreover, we have showed all the preliminary operations for this purpose, like data preprocessing and the implementation of a learning algorithm inside the frameworks of TensorFlow and TensorNetwork. After this part, the results have been presented, showing how, with several optimisations, the TTN model is capable of discriminating signal from background with good performances. In particular, after the tuning of crucial TTN hyperparameters like the bond dimension, the best results of this work are obtained with a longer training procedure, getting values of the metrics employed not so far from the best result of \cite{baldi}. Last but not least, we have remarked the difference of our approach with \cite{baldi} and how there is still room for improvement.
+
+
+\paragraph{Technical issues}
+It is necessary to point out the issues encountered during the build up of this work. In particular, the time limitation imposed by the long training procedures, needed to obtain significant results, and by the hardware specifics are among the main problems faced. Moreover, the creation of a custom layer inside TensorFlow is technically difficult if one wants to get state-of-the-art performances. In fact, this operation requires the employment of many optimisation paradigms and advanced functions. However, there are also good reasons to still choose it, such as the facility to run the learning and evaluation algorithms on GPU or CPU with intrinsic parallelisation. This translates into a huge speed up in timing performances for this type of task.
+
+
+\paragraph{Possible improvements}
+The approach presented in this work has proved to be effective and well performaning. However, as discussed before, there is still room for improvement, since the architecture can be further tuned. In this sense, it would be interesting to analyse the performances derived from the use of other optimisers or new regularisation techniques, so that the problem of overfitting can be avoided. An analysis of this type requires long technical times for the optimisation and also a more advanced hardware on which the training can be run, such as more performing GPUs or also the newer Application Specific Integrated Circuits (ASIC). These would carry another significant boost in training speed and so they would allow to explore many more possibilities and the results of new architectures or tensor layers.
+
+\end{document}

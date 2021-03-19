@@ -1,0 +1,225 @@
+% Paper template for Advanced Physics Laboratory Course
+% Suggestion: it is better to compile it directly on overleaf, because the subfigure settings can arise problems
+% Made by Alice Pagano and Francesca Dodici
+% Modified by Rocco Ardino
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LOAD PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% general packages
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{color}
+\usepackage{latexsym,amsmath}
+\usepackage{physics}
+\usepackage{chemformula}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{amssymb}
+\usepackage{slashed}
+%\usepackage[caption=false]{subfig}
+\usepackage[caption=false]{subfig}
+% \usepackage{subcaption}
+\usepackage[export]{adjustbox}
+\usepackage{multirow}
+\usepackage[margin=2cm]{geometry}
+\usepackage{enumitem}
+
+%% listing packages (for codes)
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{framed}
+\usepackage{inconsolata} % To change the listing font
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
+%% standalone package
+\usepackage[mode=buildnew]{standalone}
+
+%% hyperlink package
+\definecolor{linkcolor}{rgb}{0,0,0.65} %hyperlink
+\definecolor{linescolor}{rgb}{0.65,0.16,0.16}
+\definecolor{cool}{RGB}{49,54,149}
+\definecolor{hot}{RGB}{165,0,38}
+\usepackage[pdftex, colorlinks=true, pdfstartview=FitV, linkcolor=linescolor, citecolor=linescolor, urlcolor=linkcolor, hyperindex=true, hyperfigures=true]{hyperref}
+
+%% page settings and formatting
+\usepackage{fancyhdr}
+% \usepackage{ragged2e}
+
+% TODOs package
+\usepackage{todonotes}
+
+%% tikz
+\usepackage{tikz}
+
+%% tikz libraries
+\usetikzlibrary{decorations,decorations.markings,decorations.text}
+\usetikzlibrary{patterns}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SETTINGS AND NEW COMMANDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% fancyhdr header and footer settings
+\pagestyle{fancyplain}
+\fancyhf{}
+\fancyfoot[R]{TTN supervised classifier for HEP - Page \textbf{\thepage}}
+\fancyfoot[L]{Quantum Information and Computing 2020/2021}
+%\fancyhead[L]{\textbf{Advanced Physics Laboratory Report}}
+\fancyhead[L]{\ifnum\value{section}>0\nouppercase{\textbf{\leftmark}\fi}}
+\fancyhead[R]{R. Ardino - A. Valente}
+\renewcommand{\headrulewidth}{0.2pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+%% indentation space
+\setlength\parindent{9pt}
+% \linespread{1.13} % 11pt, highly spaced
+\linespread{1.05} % 11pt, lowly spaced
+% \linespread{0.956} % 0.956} % if using 11pt font
+
+%% section style
+%Redefine \thesubsection as \thesection.\alph{subsection}. (\alph replaces the default \arabic; you could also choose, e.g., \Alph, \roman, and \Roman.)
+\renewcommand{\thesection}{\textbf{\Roman{section}}}
+\renewcommand{\thesubsection}{\textbf{\arabic{subsection}}}
+\renewcommand{\thesubsubsection}{\textbf{\Alph{subsubsection}}}
+\renewcommand{\theparagraph}{\bf\sffamily\alph{paragraph}}
+
+\makeatletter
+\renewcommand{\paragraph}{% standard vertical spacing: 3.25ex
+    \@startsection{paragraph}{4}%
+    {\z@}{2.50ex \@plus 1ex \@minus .2ex}{-1em}%
+    {\bf\sffamily}%
+}
+\makeatother
+
+
+%\renewcommand{\thesection}{\textbf{\arabic{section}}}
+%\renewcommand{\thesubsection}{\thesection.\textbf{\arabic{subsection}}}
+%\renewcommand{\thesubsubsection}{\textbf{\thesection.\arabic{subsection}.\arabic{subsubsection}}}
+
+%% figure and table style settings
+% creano casini
+% \renewcommand{\tablename}{\textbf{TAB.}}
+% \renewcommand{\thetable}{\textbf{\arabic{table}}}
+% \renewcommand{\figurename}{\textbf{FIG.}}
+% \renewcommand{\thefigure}{\textbf{\arabic{figure}}}
+
+%% bibliography settings
+\bibliographystyle{aipnum4-1}
+\setcitestyle{numbers,square}
+
+%% figure caption settings (in bold)
+\captionsetup[figure]{
+    % justification=justified,
+    % labelsep=newline,
+    % justification=raggedright,
+    % format=hang,
+    % justification=RaggedRight,
+    % singlelinecheck=off,
+    labelfont={bf},
+    labelformat={default},
+    labelsep=period,
+    name={FIG.}%
+}
+% \captionsetup[subfigure]{labelformat=brace}
+
+%% colors
+\definecolor{amber}{rgb}{1.0, 0.75, 0.0}
+\definecolor{goldmetallic}{rgb}{0.83, 0.69, 0.22}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}  %#5D8AA8
+\definecolor{cobalt}{rgb}{0.0, 0.28, 0.67}         %#0047AB
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}      %#002E63
+\definecolor{dartmouthgreen}{rgb}{0.05, 0.5, 0.06} %#00693E
+\definecolor{mydmg}{rgb}{0.05, 0.5, 0.06}          %#00693E
+\definecolor{lava}{rgb}{0.81, 0.06, 0.13}          %#CF1020
+\definecolor{myred}{rgb}{0.81, 0.06, 0.13}         %#CF1020
+
+% itemize
+\setlist[itemize]{
+    noitemsep,
+    topsep=5pt,
+    parsep=5pt,
+    partopsep=5pt
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newcommand{\figref}[1]{FIG. \textbf{\ref{#1}}}
+\newcommand{\eqnref}[1]{EQ. \textbf{\ref{#1}}}
+\newcommand{\tabref}[1]{TAB. \textbf{\ref{#1}}}
+\renewcommand{\algref}[1]{ALG. \textbf{\ref{#1}}}
+\newcommand{\lstref}[1]{LST. \textbf{\ref{#1}}}
+
+
+% \definecolor{codegreen}{rgb}{0,0.6,0}
+% \definecolor{codegray}{rgb}{0.5,0.5,0.5}
+% \definecolor{codepurple}{rgb}{0.58,0,0.82}
+% \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+% %Code listing style named "mystyle"
+% \lstdefinestyle{mystyle}{
+%   backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+%   keywordstyle=\color{red},
+%   numberstyle=\tiny\color{codegray},
+%   stringstyle=\color{codepurple},
+%   basicstyle=\ttfamily\footnotesize,
+%   breakatwhitespace=false,         
+%   breaklines=true,
+%   postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+%   captionpos=b,                    
+%   keepspaces=true,                 
+%   numbers=left,                    
+%   numbersep=5pt,    -+              
+%   showspaces=false,                
+%   showstringspaces=false,
+%   showtabs=false,                  
+%   tabsize=2
+% }
+
+
+
+\definecolor{linkcolor}{rgb}{0,0,0.65}
+\definecolor{shadecolor}{rgb}{0.95, 0.95, 0.95}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstdefinestyle{python}
+{
+    backgroundcolor=\color{shadecolor},       % background color
+    basicstyle=\ttfamily\footnotesize,        % the size of the fonts that are used for the code
+    breakatwhitespace=false,                  % sets if automatic breaks should only happen at whitespace
+    breaklines=true,                          % sets automatic line breaking
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    captionpos=b,                             % sets the caption-position to bottom
+    commentstyle=\color{mygreen},             % comment style
+    extendedchars=true,                       % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+    keepspaces=true,                          % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+    keywordstyle=\bfseries\color{blue},       % keyword style
+    language=Python,                          % the language of the code
+    numbers=left,                             % where to put the line-numbers; possible values are (none, left, right)
+    numbersep=5pt,                            % how far the line-numbers are from the code
+    numberstyle=\tiny\color{mygray},          % the style that is used for the line-numbers
+    rulecolor=\color{black},                  % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+    showspaces=false,                         % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+    showstringspaces=false,                   % underline spaces within strings only
+    showtabs=false,                           % show tabs within strings adding particular underscores
+    stepnumber=1,                             % the step between two line-numbers. If it's 1, each line will be numbered
+    stringstyle=\color{mymauve},              % string literal style
+    tabsize=4,                                % sets default tabsize to 4 spaces
+    title=\lstname                            % show the filename of files
+}
+
+\usepackage{pythonhighlight}
+
+% "mystyle" code listing set
+% \lstset{style=mystyle}
