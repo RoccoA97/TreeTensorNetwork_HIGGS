@@ -1,0 +1,40 @@
+\documentclass[tikz, border=0pt]{standalone}
+\usepackage{siunitx}
+\usepackage{physics}
+\usepackage[compat=1.1.8]{tikz-feynman}
+\usetikzlibrary{decorations,decorations.markings,decorations.text}
+
+\begin{document}
+
+\def\picscale{1.5}
+\def\nodescale{0.5}
+\def\labscale{0.5}
+
+\begin{tikzpicture}
+    \begin{feynman}[every blob={/tikz/inner sep=0pt, /tikz/minimum size=3mm}, scale=\picscale, transform shape]
+        \vertex [anchor=center, scale=\nodescale]                         (g1) {\color{red}\( g \)};
+        \vertex [below right=of g1, anchor=center, blob]                  (v1) {};
+        \vertex [below left =of v1, anchor=center, scale=\nodescale]      (g2) {\color{red}\( g \)};
+        \vertex [right      =of v1, anchor=center, dot, scale=\nodescale] (v2) {};
+        \vertex [above right=of v2, anchor=center, scale=\nodescale]      (w1) {\color{red}\( W^{\mp} \)};
+        \vertex [below right=of v2, anchor=center, dot, scale=\nodescale] (v4) {};
+        \vertex [                   anchor=center, dot, scale=\nodescale] (v3) at ($(v2)!0.5!(v4)$) {};
+        \vertex [above right=of v3, anchor=center, scale=\nodescale]      (w2) {\color{red}\( W^{\pm} \)};
+        \vertex [above right=of v4, anchor=center, scale=\nodescale]      (b1) {\color{red}\( \bar{b} \)};
+        \vertex [below right=of v4, anchor=center, scale=\nodescale]      (b2) {\color{red}\( b \)};
+        \vertex [above right=of w1, anchor=center, scale=\nodescale]      (e1) {~};
+
+        \diagram*{
+            (g1) -- [gluon] (v1),
+            (g2) -- [gluon] (v1),
+            (v1) -- [scalar, edge label={\color{blue}\( H^{0} \)}, scale=\labscale] (v2),
+            (v2) -- [boson] (w1),
+            (v2) -- [scalar, edge label'={\color{blue}\( H^{\pm} \)}, scale=\labscale] (v3),
+            (v3) -- [scalar, edge label'=\( h^{0} \), scale=\labscale]   (v4),
+            (v3) -- [boson] (w2),
+            (b1) -- [fermion] (v4) -- [fermion] (b2),
+        };
+    \end{feynman}
+\end{tikzpicture}
+
+\end{document}

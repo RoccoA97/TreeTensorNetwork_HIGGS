@@ -1,0 +1,181 @@
+\documentclass[tikz,border=0mm]{standalone}
+
+\usepackage{amsmath}
+
+\usetikzlibrary{matrix,positioning,fit,backgrounds,intersections}
+\usetikzlibrary{calc}
+
+
+\definecolor{amber}{rgb}{1.0, 0.75, 0.0}
+\definecolor{goldmetallic}{rgb}{0.83, 0.69, 0.22}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}  %#5D8AA8
+\definecolor{cobalt}{rgb}{0.0, 0.28, 0.67}         %#0047AB
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}      %#002E63
+\definecolor{dartmouthgreen}{rgb}{0.05, 0.5, 0.06} %#00693E
+\definecolor{mydmg}{rgb}{0.05, 0.5, 0.06}          %#00693E
+\definecolor{lava}{rgb}{0.81, 0.06, 0.13}          %#CF1020
+\definecolor{myred}{rgb}{0.81, 0.06, 0.13}         %#CF1020
+
+
+\begin{document}
+\def\layersep{2.5cm}
+%\begin{minipage}{0.6\columnwidth}
+    \begin{tikzpicture}[draw=black!50, mmat/.style={matrix of math nodes,column sep=-\pgflinewidth/2,
+       row sep=-\pgflinewidth/2,cells={nodes={draw,inner sep=5pt,ultra thin, scale=0.85}},draw=#1,thick,inner sep=0pt},
+       mmat/.default=black,
+       node distance=0.3em,
+       transform shape,
+       scale=1.0]
+
+
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle,fill=black!25,minimum size=15pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=lava];
+    \tikzstyle{output neuron}=[neuron, fill=amber];
+    \tikzstyle{hidden neuron}=[neuron, fill=dartmouthgreen];
+    \tikzstyle{annot} = [text width=6em, text centered]
+
+
+	% Draw the input layer nodes
+	\foreach \name / \y in {1,...,8}
+	% This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+		\node[input neuron, draw=black!100, thick] (I-\name) at (-3.0*\layersep,\y) {};
+	    
+	    
+	
+	\node[right=0.2*\layersep of I-1] (IE-1) {};
+	\node[right=0.2*\layersep of I-2] (IE-2) {};
+	\node[right=0.2*\layersep of I-3] (IE-3) {};
+	\node[right=0.2*\layersep of I-4] (IE-4) {};
+	\node[right=0.2*\layersep of I-5] (IE-5) {};
+	\node[right=0.2*\layersep of I-6] (IE-6) {};
+	\node[right=0.2*\layersep of I-7] (IE-7) {};
+	\node[right=0.2*\layersep of I-8] (IE-8) {};
+	
+	
+    \path[ultra thick] (I-1) edge (IE-1);	
+	\path[ultra thick] (I-2) edge (IE-2);	
+	\path[ultra thick] (I-3) edge (IE-3);	
+	\path[ultra thick] (I-4) edge (IE-4);	
+	\path[ultra thick] (I-5) edge (IE-5);	
+	\path[ultra thick] (I-6) edge (IE-6);	
+	\path[ultra thick] (I-7) edge (IE-7);	
+	\path[ultra thick] (I-8) edge (IE-8);	
+	
+	\node (IM-1)  at ($ (I-2)  !0.5! (I-1)  $) {};
+	\node (IM-2)  at ($ (I-4)  !0.5! (I-3)  $) {};
+	\node (IM-3)  at ($ (I-6)  !0.5! (I-5)  $) {};
+	\node (IM-4)  at ($ (I-8)  !0.5! (I-7)  $) {};
+	
+	
+	
+	
+	\node[right=\layersep of I-7] (HE-7) {};
+	\node[right=\layersep of I-8] (HE-8) {};
+	\node[circle,fill=black!0, minimum size=7.5pt, inner sep=0pt] (HE-9)  at ($ (HE-7)  !2.0! (HE-8)  $) {};
+	\node[circle,fill=black!0, minimum size=7.5pt, inner sep=0pt] (HE-10) at ($ (HE-8)  !2.0! (HE-9)  $) {~};
+	% \node                         (HE-11) at ($ (HE-9)  !2.0! (HE-10) $) {~};
+	% \node                         (HE-12) at ($ (HE-10) !2.0! (HE-11) $) {~};
+
+
+    \node[hidden neuron, draw=black!100, thick, right=0.4*\layersep of IM-1] (H-1) {};
+    \node[hidden neuron, draw=black!100, thick, right=0.4*\layersep of IM-2] (H-2) {};
+    \node[hidden neuron, draw=black!100, thick, right=0.4*\layersep of IM-3] (H-3) {};
+    \node[hidden neuron, draw=black!100, thick, right=0.4*\layersep of IM-4] (H-4) {};
+    
+    
+    \node[right=0.2*\layersep of H-1] (HE-1R) {};
+    \node[right=0.2*\layersep of H-2] (HE-2R) {};
+    \node[right=0.2*\layersep of H-3] (HE-3R) {};
+    \node[right=0.2*\layersep of H-4] (HE-4R) {};
+    
+    	   
+
+    \node[below of=H-1, node distance=0.8cm] (HE-1U) {};
+    \node[below of=H-2, node distance=0.8cm] (HE-2U) {};
+    \node[below of=H-3, node distance=0.8cm] (HE-3U) {};
+    \node[below of=H-4, node distance=0.8cm] (HE-4U) {};
+    \node[below of=H-1, node distance=-0.8cm] (HE-1D) {};
+    \node[below of=H-2, node distance=-0.8cm] (HE-2D) {};
+    \node[below of=H-3, node distance=-0.8cm] (HE-3D) {};
+    \node[below of=H-4, node distance=-0.8cm] (HE-4D) {};
+    
+    \path[ultra thick] (H-1) edge (HE-1R);	
+	\path[ultra thick] (H-2) edge (HE-2R);	
+	\path[ultra thick] (H-3) edge (HE-3R);	
+	\path[ultra thick] (H-4) edge (HE-4R);
+	\path[ultra thick] (H-1) edge (HE-1U);
+    \path[ultra thick] (H-2) edge (HE-2U);
+    \path[ultra thick] (H-3) edge (HE-3U);
+    \path[ultra thick] (H-4) edge (HE-4U);
+    \path[ultra thick] (H-1) edge (HE-1D);
+    \path[ultra thick] (H-2) edge (HE-2D);
+    \path[ultra thick] (H-3) edge (HE-3D);
+    \path[ultra thick] (H-4) edge (HE-4D);
+    
+    
+    
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-1] (IC-1) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-2] (IC-2) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-3] (IC-3) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-4] (IC-4) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-5] (IC-5) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-6] (IC-6) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-7] (IC-7) {};
+    \node[input neuron, draw=black!100, thick, right=1.4*\layersep of I-8] (IC-8) {};
+    
+    
+    \node[hidden neuron, draw=black!100, thick, right=1.4*\layersep of H-1] (HC-1) {};
+    \node[hidden neuron, draw=black!100, thick, right=1.4*\layersep of H-2] (HC-2) {};
+    \node[hidden neuron, draw=black!100, thick, right=1.4*\layersep of H-3] (HC-3) {};
+    \node[hidden neuron, draw=black!100, thick, right=1.4*\layersep of H-4] (HC-4) {};
+    
+    
+    \node[ right=0.2*\layersep of HC-1] (HCE-1) {};
+    \node[ right=0.2*\layersep of HC-2] (HCE-2) {};
+    \node[ right=0.2*\layersep of HC-3] (HCE-3) {};
+    \node[ right=0.2*\layersep of HC-4] (HCE-4) {};
+    
+    \path[ultra thick] (IC-1) edge (HC-1);
+    \path[ultra thick] (IC-2) edge (HC-1);
+    \path[ultra thick] (IC-3) edge (HC-2);
+    \path[ultra thick] (IC-4) edge (HC-2);
+    \path[ultra thick] (IC-5) edge (HC-3);
+    \path[ultra thick] (IC-6) edge (HC-3);
+    \path[ultra thick] (IC-7) edge (HC-4);
+    \path[ultra thick] (IC-8) edge (HC-4);
+    \path[ultra thick] (HC-1) edge (HCE-1);
+    \path[ultra thick] (HC-2) edge (HCE-2);
+    \path[ultra thick] (HC-3) edge (HCE-3);
+    \path[ultra thick] (HC-4) edge (HCE-4);
+    
+    
+    
+    \node[output neuron, draw=black!100, thick, right=\layersep of HC-1] (O-1) {};
+    \node[output neuron, draw=black!100, thick, right=\layersep of HC-2] (O-2) {};
+    \node[output neuron, draw=black!100, thick, right=\layersep of HC-3] (O-3) {};
+    \node[output neuron, draw=black!100, thick, right=\layersep of HC-4] (O-4) {};
+    \node[right=0.2*\layersep of O-1] (OE-1) {};
+    \node[right=0.2*\layersep of O-2] (OE-2) {};
+    \node[right=0.2*\layersep of O-3] (OE-3) {};
+    \node[right=0.2*\layersep of O-4] (OE-4) {};
+    
+    
+    \path[ultra thick] (O-1) edge (OE-1);
+    \path[ultra thick] (O-2) edge (OE-2);
+    \path[ultra thick] (O-3) edge (OE-3);
+    \path[ultra thick] (O-4) edge (OE-4);
+    
+    
+
+	% Annotate the layers
+	\node[annot,below of=I-1,      node distance=1.0cm] (AA-IL)        {$\boldsymbol{\Phi(x)}$};
+	\node[annot,below of=H-1,      node distance=1.5cm] (AA-HL)        {\textbf{Weights}};
+	\node[annot,below of=IE-1,      node distance=2.0cm] (A-IL)        {\textbf{Nodes Creation}};
+	\node[annot,right of=A-IL,      node distance=3.8cm] (A-HL)        {\textbf{Nodes Contraction}};
+	\node[annot,below of=O-1,       node distance=2.5cm] (A-OL)        {\textbf{Output Tensors}};
+%	\node[annot,below of=HH-1,     node distance=4.5cm] (A-HHL)       {\textbf{Hidden\\Layer\\2}};
+%	\node[annot,below of=O-1,      node distance=6.5cm] (A-OL)        {\textbf{Output\\Layer}};
+\end{tikzpicture}
+
+\end{document}

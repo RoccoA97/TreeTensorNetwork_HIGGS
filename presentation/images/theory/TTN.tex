@@ -1,0 +1,105 @@
+\documentclass[tikz,border=0mm]{standalone}
+
+\usepackage{amsmath}
+
+\usetikzlibrary{matrix,positioning,fit,backgrounds,intersections}
+\usetikzlibrary{calc}
+
+
+\definecolor{amber}{rgb}{1.0, 0.75, 0.0}
+\definecolor{goldmetallic}{rgb}{0.83, 0.69, 0.22}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}  %#5D8AA8
+\definecolor{cobalt}{rgb}{0.0, 0.28, 0.67}         %#0047AB
+\definecolor{coolblack}{rgb}{0.0, 0.18, 0.39}      %#002E63
+\definecolor{dartmouthgreen}{rgb}{0.05, 0.5, 0.06} %#00693E
+\definecolor{mydmg}{rgb}{0.05, 0.5, 0.06}          %#00693E
+\definecolor{lava}{rgb}{0.81, 0.06, 0.13}          %#CF1020
+\definecolor{myred}{rgb}{0.81, 0.06, 0.13}         %#CF1020
+
+
+\begin{document}
+\def\layersep{2.5cm}
+%\begin{minipage}{0.6\columnwidth}
+    \begin{tikzpicture}[draw=black!50, mmat/.style={matrix of math nodes,column sep=-\pgflinewidth/2,
+       row sep=-\pgflinewidth/2,cells={nodes={draw,inner sep=5pt,ultra thin, scale=0.85}},draw=#1,thick,inner sep=0pt},
+       mmat/.default=black,
+       node distance=0.3em,
+       transform shape,
+       scale=1.0]
+
+
+    \tikzstyle{every pin edge}=[<-,shorten <=1pt]
+    \tikzstyle{neuron}=[circle,fill=black!25,minimum size=15pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=lava];
+    \tikzstyle{output neuron}=[neuron, fill=amber];
+    \tikzstyle{hidden neuron}=[neuron, fill=dartmouthgreen];
+    \tikzstyle{annot} = [text width=4em, text centered]
+
+
+	% Draw the input layer nodes
+	\foreach \name / \y in {1,...,8}
+	% This is the same as writing \foreach \name / \y in {1/1,2/2,3/3,4/4}
+		\node[input neuron, draw=black!100, thick, pin=left:{In{[}\#\y{]}: \( \boldsymbol{\Phi(x_{\y})} \)}] (I-\name) at (-3.0*\layersep,\y) {};
+	
+	
+	\node (IM-1)  at ($ (I-2)  !0.5! (I-1)  $) {};
+	\node (IM-2)  at ($ (I-4)  !0.5! (I-3)  $) {};
+	\node (IM-3)  at ($ (I-6)  !0.5! (I-5)  $) {};
+	\node (IM-4)  at ($ (I-8)  !0.5! (I-7)  $) {};
+	
+	\node[right=\layersep of I-7] (HE-7) {};
+	\node[right=\layersep of I-8] (HE-8) {};
+	\node[circle,fill=black!0, minimum size=7.5pt, inner sep=0pt] (HE-9)  at ($ (HE-7)  !2.0! (HE-8)  $) {};
+	\node[circle,fill=black!0, minimum size=7.5pt, inner sep=0pt] (HE-10) at ($ (HE-8)  !2.0! (HE-9)  $) {~};
+	% \node                         (HE-11) at ($ (HE-9)  !2.0! (HE-10) $) {~};
+	% \node                         (HE-12) at ($ (HE-10) !2.0! (HE-11) $) {~};
+
+
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of IM-1] (H-1) {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of IM-2] (H-2) {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of IM-3] (H-3) {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of IM-4] (H-4) {};
+    
+    
+    \node (HM-1)  at ($ (H-2)  !0.5! (H-1)  $) {};
+	\node (HM-2)  at ($ (H-4)  !0.5! (H-3)  $) {};
+	
+	
+	\node[hidden neuron, draw=black!100, thick, right=\layersep of HM-1] (HH-1) {};
+    \node[hidden neuron, draw=black!100, thick, right=\layersep of HM-2] (HH-2) {};
+    
+    
+    \node (HHM-1)  at ($ (HH-2)  !0.5! (HH-1)  $) {};
+
+    % \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{\scriptsize Out{[}\#2{]}}}, right=\layersep of HHHH-5] (O-2){};
+    % \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{\scriptsize Out{[}\#3{]}}}, right=\layersep of HHHHHH-6] (O-3){};
+    % \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{Out{[}\#1{]}}}, right=\layersep of HHHO] (O-1){};
+    \node[output neuron, draw=black!100, thick, pin={[pin edge={->}]right:{Out{[}\#1{]}: \textbf{Prediction}}}, right=\layersep of HHM-1] (O-1){};
+
+
+    \path (I-1) edge (H-1);
+    \path (I-2) edge (H-1);
+    \path (I-3) edge (H-2);
+    \path (I-4) edge (H-2);
+    \path (I-5) edge (H-3);
+    \path (I-6) edge (H-3);
+    \path (I-7) edge (H-4);
+    \path (I-8) edge (H-4);
+    
+    
+    \path (H-1) edge (HH-1);
+    \path (H-2) edge (HH-1);
+    \path (H-3) edge (HH-2);
+    \path (H-4) edge (HH-2);
+    
+    \path (HH-1) edge (O-1);
+    \path (HH-2) edge (O-1);
+
+	% Annotate the layers
+	\node[annot,below of=I-1,      node distance=3.0cm] (A-IL)        {\textbf{Input\\Layer}};
+	\node[annot,below of=H-1,      node distance=3.5cm] (A-HL)        {\textbf{Hidden\\Layer\\1}};
+	\node[annot,below of=HH-1,     node distance=4.5cm] (A-HHL)       {\textbf{Hidden\\Layer\\2}};
+	\node[annot,below of=O-1,      node distance=6.5cm] (A-OL)        {\textbf{Output\\Layer}};
+\end{tikzpicture}
+
+\end{document}
